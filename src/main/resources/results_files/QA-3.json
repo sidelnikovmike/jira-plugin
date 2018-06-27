@@ -1,0 +1,10 @@
+{
+  "passedCount": 0,
+  "failedCount": 0,
+  "brokenCount": 3,
+  "skippedCount": 3,
+  "time" : "21.02.2018 13:45",
+  "allureLink" : "http://teamcity.propellerdev.com/repository/download/QA_AdExDeliveryTests_QADeliveryEnv/277851:id/index.html",
+  "teamCityLink" : "http://teamcity.propellerdev.com/viewLog.html?buildId=277851&buildTypeId=QA_AdExDeliveryTests_QADeliveryEnv&tab=buildLog"
+
+}

@@ -1,0 +1,293 @@
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-1.12.1.min.js" type="text/javascript"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="https://qa.propellerdev.com/v1/kv/runner/consul.js?raw"></script>
+    <style>
+        #sucess_project_delete_alert {
+            margin-top: 10px;
+        }
+
+        #sucess_project_add_alert {
+            margin-top: 10px;
+        }
+
+        .project_button_icon {
+            width: 2px;
+            height: 2px;
+            padding-left: 10px;
+            padding-right: 5px;
+        }
+
+        .project_button {
+            margin-right: 10px;
+        }
+
+        #add_project_button {
+            margin-top: 10px;
+        }
+
+    </style>
+
+    <script type="text/javascript">
+
+        function getProjectsData() {
+            var data = CONSUL.getFileData("jira/config/projects.json");
+            if (data.error !== "") {
+                showErrorAlert(data.error);
+            } else {
+                return data.data;
+            }
+        }
+
+        function getProjectElement(project) {
+            return "<button type=\"button\" id=\"projects_" + project.key + "\" class=\"btn btn-primary project_button \">" + project.key + "<span\n" +
+                "                onclick=\"removeProject('" + project.key + "')\" style=\"width:2px; height:2px;padding-left: 10px; padding-right: 5px;\"\n" +
+                "                class=\"glyphicon glyphicon-remove project_button_icon\"/>\n" +
+                "        </button>"
+        }
+
+        function initProjectsList() {
+            var data = getProjectsData();
+            if (data !== undefined) {
+                var projectsListElement = $("#projects_list_element");
+                var emptyListMessageElement = $("#empty_list_message");
+                if(data.length === 0) {
+                    projectsListElement.hide();
+                    emptyListMessageElement.show();
+                } else {
+                    projectsListElement.show();
+                    emptyListMessageElement.hide();
+                    projectsListElement.empty();
+                    $.each(data, function (index, project) {
+                        projectsListElement.append(getProjectElement(project));
+                    })
+
+                }
+
+            }
+        }
+
+
+        $(document).ready(function () {
+            initProjectsList();
+        });
+
+        function showErrorAlert(message) {
+            var alert = $("#error_alert");
+            alert.text("Error while delete project. Error: " + message);
+            alert.show();
+            window.setTimeout(function () {
+                alert.hide();
+            }, 3000);
+        }
+
+        function showSuccessRemoveProjectAlert(key) {
+            var alert = $("#sucess_project_delete_alert");
+            alert.text("Project `" + key + "` successfully removed from project list...");
+            alert.show();
+            window.setTimeout(function () {
+                alert.hide();
+            }, 2000);
+        }
+
+        function showSuccessAddProjectAlert(key) {
+            var alert = $("#sucess_project_add_alert");
+            alert.text("Project `" + key + "` successfully added to project list...");
+            alert.show();
+            window.setTimeout(function () {
+                alert.hide();
+            }, 2000);
+        }
+
+
+        function removeProject(key) {
+            removeProjectFromStorage(key);
+            var projectRemoveError = removeProjectFromStorage(key);
+            if (projectRemoveError !== CONSUL.successSaveStatus) {
+                showErrorAlert("Error save to storage - status : " + projectRemoveError)
+            } else {
+                initProjectsList();
+                showSuccessRemoveProjectAlert(key);
+            }
+        }
+
+        function saveProjectsData(data) {
+            return CONSUL.saveData("jira/config/projects.json", JSON.stringify(data));
+        }
+
+        function addProjectToStorage(projectKey) {
+            var data = getProjectsData();
+            if (data !== undefined) {
+                data.push({
+                    key: projectKey
+                });
+                return saveProjectsData(data);
+            }
+            return "";
+        }
+
+        function removeProjectFromStorage(projectKey) {
+            var data = getProjectsData();
+            if (data !== undefined) {
+                var result = [];
+                $.each(data, function (index, project) {
+                    if(project.key !== projectKey){
+                        result.push(project);
+                    }
+                });
+                return saveProjectsData(result);
+            }
+            return "";
+        }
+
+        function addProject() {
+            var projectKey = $("#add_project_input").val().toUpperCase();
+            var projectAddError = addProjectToStorage(projectKey);
+            if (projectAddError !== CONSUL.successSaveStatus) {
+                showErrorAlert("Error save to storage - status : " + projectAddError)
+            } else {
+                $("#add_project_input").val("");
+                initProjectsList();
+                showSuccessAddProjectAlert(projectKey);
+            }
+        }
+
+    </script>
+    <title>Qa Jira Pligin Configuration</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+<div style="padding: 15px">
+
+    <div class="row" style="margin-left: 10px;" id="projects_list_block">
+        <h3>
+            Projects list
+        </h3>
+
+        <h5 style="color: grey" id="empty_list_message">
+            No projects selected. Please, add one or more projects by using input.
+        </h5>
+        <div id="projects_list_element">
+        </div>
+        <div class="alert alert-success" role="alert" id="sucess_project_delete_alert" style="display: none">
+            <a href="#" class="alert-link">Project successfully removed from project list...</a>
+        </div>
+    </div>
+
+
+    <div class="row" style="margin-left: 10px; margin-top: 10px" id="available_projects_list_block">
+        <h4>
+            Add more projects
+        </h4>
+
+        <div>
+            <input type="text" class="form-control" placeholder="Add your project key here..." style="width: 300px"
+                   id="add_project_input">
+            <button onclick="addProject()" type="button" id="add_project_button" class="btn btn-success add_button">Add
+                project
+            </button>
+        </div>
+        <div class="alert alert-success" role="alert" id="sucess_project_add_alert" style="display: none">
+            <a href="#" class="alert-link">Project successfully added to project list...</a>
+        </div>
+    </div>
+
+    <div class="alert alert-danger" role="alert" id="error_alert" style="display: none; margin-top: 10px;">
+        <a href="#" class="alert-link"></a>
+    </div>
+</div>
+
+
+<!--<div class="row" style="margin-left: 10px;display: none" id="data_loading_error">-->
+<!--<h6 style="color: red">Ошибка при чтении конфигурации из consul... Будут использованы-->
+<!--<a href="config.json" target="_blank">стандартные настройки</a>-->
+<!--</h6>-->
+<!--</div>-->
+<!--<div class="panel panel-default" style="float: left;  margin-top:10px; margin-left:10px;min-width: 200px">-->
+<!--<div class="panel-heading">Разделы</div>-->
+<!--<div class="panel-body">-->
+<!--<ul class="nav nav-list" id="methods_list">-->
+<!--</ul>-->
+<!--</div>-->
+<!--</div>-->
+<!--<div class="panel panel-default"-->
+<!--style="float: left;margin-left: 50px; margin-top:10px;max-width: 700px; display: none"-->
+<!--id="request_form">-->
+<!--<div class="panel-heading">Запуск теста</div>-->
+<!--<div class="panel-body">-->
+<!--<div id="method_params_form" style="display: none;margin-left: 10px; margin-right: 10px">-->
+<!--<div class="row">-->
+<!--<span class="parameter_name">Имя : </span>-->
+<!--<span id="method_name_param"></span>-->
+<!--</div>-->
+<!--<div class="row" style="padding-top: 10px">-->
+<!--<span class="parameter_name">Описание : </span>-->
+<!--<span style="width: 300px" id="method_description_param"></span>-->
+<!--</div>-->
+<!--<div class="row" style="padding-top: 10px">-->
+<!--<span class="parameter_name">URL : </span>-->
+<!--<a target="_blank" style="width: 300px"-->
+<!--id="method_url_param"></a>-->
+<!--</div>-->
+<!--<div class="row" style="padding-top: 10px" id="request_params">-->
+<!--<div class="panel panel-default">-->
+<!--<div class="panel-heading">Параметры</div>-->
+<!--<table class="table" id="parameters_table">-->
+<!--<th class="request_parameter_text">Имя</th>-->
+<!--<th class="request_parameter_text">Значение</th>-->
+<!--</table>-->
+<!--</div>-->
+<!--</div>-->
+<!--<div class="row" style="padding-top: 10px">-->
+<!--<button class="btn btn-default" onclick="sendRequest()" id="run_button" style="float: left">Run-->
+<!--</button>-->
+<!--<h6 id="request_sending_text" style="float: left; padding-left: 10px; display: none">выполняется-->
+<!--запрос...</h6>-->
+<!--</div>-->
+<!--<div class="row" style="padding-top: 10px;display: none" id="response_form">-->
+<!--<div>-->
+<!--<a id="configuration_link" style="display: none" target="_blank">Ссылка на запущенную-->
+<!--конфигурацию</a>-->
+<!--</div>-->
+
+<!--<div>-->
+<!--<a class="selectable_element" id="history_link" style="display: none" target="_blank">Показать историю</a>-->
+<!--</div>-->
+<!--<div>-->
+<!--<a class="selectable_element" id="response_link" onclick="showResponse()" style="display: none">Показать-->
+<!--ответ</a>-->
+<!--</div>-->
+<!--<div id="response" style="display: none">-->
+<!--<h5>Ответ:</h5>-->
+<!--<textarea class='form-control' rows='10' id="response_field"-->
+<!--style="max-width: 430px;"></textarea>-->
+<!--</div>-->
+<!--</div>-->
+
+
+<!--</div>-->
+
+<!--</div>-->
+<!--</div>-->
+<!--<div style="float: right; padding-right: 10px">-->
+<!--<div>-->
+<!--<a href="http://qa-consul01.propellerdev.com:8500/v1/kv/run_history/run_history.html?raw#">Ссылка на историю запусков</a>-->
+<!--</div>-->
+<!--<div>-->
+<!--<a href="http://qa-consul01.propellerdev.com:8500/v1/kv/runner/edit_file.html?raw">Редактировать данные методов</a>-->
+<!--</div>-->
+<!--</div>-->
+
+<!--&lt;!&ndash;</div>&ndash;&gt;-->
+<!--<div id="footer" class="navbar-fixed-bottom">-->
+<!--<div class="container">-->
+<!--<p class="muted credit">Сделано <a target="_blank"-->
+<!--href="https://team.propellerads.net/employee/4/3499/">Сидельниковым-->
+<!--Михаилом</a>.</p>-->
+<!--</div>-->
+<!--</div>-->
+</body>
+</html>

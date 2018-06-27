@@ -1,0 +1,70 @@
+
+
+#if ($hasResults)
+    #if($isPassed)
+        <div>
+            <span style="font-weight: bold; ">Tests status :</span>
+            <span style="font-weight: bold;color: green;">Tests Passed</span>
+        </div>
+    #elseif($isFailed)
+        <div>
+            <span style="font-weight: bold; ">Tests status :</span>
+            <span style="font-weight: bold;color: red;">Tests Failed!</span>
+        </div>
+    #elseif($isBroken)
+        <div>
+            <span style="font-weight: bold; ">Tests status :</span>
+            <span style="font-weight: bold;color: orange;">Tests Broken!</span>
+        </div>
+    #end
+## report details. For all statuses
+    <div style="padding-left: 10px">
+        <span style="font-weight: bold;">Details : </span>
+    </div>
+
+
+    <div style="padding-left: 20px; padding-top: 5px">
+        <span style="font-weight: bold; color: green">Passed :</span>
+        <span style="color: green;">$passedCount</span>
+    </div>
+
+    <div style="padding-left: 20px; padding-top: 5px">
+        <span style="font-weight: bold; color: red">Failed :</span>
+        <span style="color: red;">$failedCount</span>
+    </div>
+
+    <div style="padding-left: 20px; padding-top: 5px">
+        <span style="font-weight: bold; color: orange">Broken :</span>
+        <span style="color: orange;">$brokenCount</span>
+    </div>
+
+    <div style="padding-left: 20px; padding-top: 5px">
+        <span style="font-weight: bold; color: gray">Skipped :</span>
+        <span style="color: gray;">$skippedCount</span>
+    </div>
+
+    <div style="padding-left: 20px; padding-top: 5px">
+        <span style="font-weight: bold;">Time of tests run :</span>
+        <span>$time</span>
+    </div>
+
+##useful links
+    <div style="padding-left: 10px; padding-top: 5px">
+        <span style="font-weight: bold;">Useful links: </span>
+    </div>
+
+    ##allure link need only for not broken tests
+    #if($isBroken == false)
+        <div style="padding-left: 20px; padding-top: 5px">
+            <a href="$allureLink" target="_blank">Link to Allure report</a>
+        </div>
+    #end
+    <div style="padding-left: 20px; padding-top: 5px">
+        <a href="$teamCityLink" target="_blank">Link to TeamCity log</a>
+    </div>
+
+#else
+<span style="color: blue;">No tests results was found for current issue.<br>
+    Maybe branch in github not contains info about issue or it is not technical task.</span>
+#end
+

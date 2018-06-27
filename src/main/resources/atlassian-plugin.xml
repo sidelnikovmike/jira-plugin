@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<atlassian-plugin key="${atlassian.plugin.key}" name="${project.name}" plugins-version="2">
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}"/>
+        <param name="plugin-icon">images/pluginIcon.png</param>
+        <param name="plugin-logo">images/pluginLogo.png</param>
+    </plugin-info>
+    <!-- add our i18n resource -->
+    <resource type="i18n" name="i18n" location="tests-results"/>
+    <!-- add our web resources -->
+    <web-panel name="TestsResultsIndicator" i18n-name-key="tests-results-indicator.name" key="tests-results-indicator"
+               location="atl.jira.view.issue.right.context" weight="1000">
+        <description key="tests.results.inducator.description">The TestsResultsIndicator Plugin</description>
+        <context-provider class="com.propellerads.libs.jira.plugin.results.TestsResultsIndicator"/>
+        <resource name="view" type="velocity" location="tests-result-indicator.vm"/>
+        <label key="tests-results-indicator.title"/>
+        <condition class="com.propellerads.libs.jira.plugin.results.condition.ShowBlockCondition" invert="true"/>
+    </web-panel>
+</atlassian-plugin>
